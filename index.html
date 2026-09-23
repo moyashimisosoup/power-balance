@@ -78,14 +78,122 @@ pressure:['相手が拒否した場合、どの程度の圧力をかけました
 evidence:['相手とのやり取りを示す記録はありますか？','記録があるほど、あなた側の説明責任を重く計算します。'],
 witness:['あなたと相手のやり取りを第三者は知っていますか？','最後の質問です。']
 };return m[id]||[q[1],q[2]]}
-function render(){var q=qs[step],id=q[0],rq=roleQuestion(q),html='<div class="eyebrow">POWER CHECK</div><h2 class="q">'+rq[0]+'</h2><p class="hint">'+rq[1]+'</p>';$('stepLabel').textContent='QUESTION '+(step+1);$('stepCount').textContent=(step+1)+' / '+qs.length;$('bar').style.width=((step+1)/qs.length*100)+'%';$('back').style.visibility=step?'visible':'hidden';$('next').textContent=step===qs.length-1?'判定する':'次へ';if(q[3]==='c'){html+='<div class="choices">';q[4].forEach(function(o){html+='<button class="choice '+(s[id]===o[0]?'sel':'')+'" data-v="'+o[0]+'"><strong>'+o[1]+'</strong>'+(o[2]?'<small>'+o[2]+'</small>':'')+'</button>'});html+='</div>'}else{html+='<div class="checks">';q[4].forEach(function(o){html+='<label class="check"><input type="checkbox" value="'+o[0]+'" '+(s[id].indexOf(o[0])>=0?'checked':'')+'><span><strong>'+o[1]+'</strong><small>'+o[2]+'</small></span></label>'});html+='</div>'}$('qa').innerHTML=html;if(q[3]==='c'){[].slice.call(document.querySelectorAll('.choice')).forEach(function(b){b.onclick=function(){s[id]=b.dataset.v;render()}})}else{[].slice.call(document.querySelectorAll('#qa input')).forEach(function(c){c.onchange=function(){multiSet(id);interim();valid()}})}interim();valid()}
+function roleOptions(q){if(s.role!=='yes')return q[4];var id=q[0],o=q[4].map(function(x){return x.slice()});
+if(id==='reciprocity'){o=[['senior','主に私から相手へ','私が相手を助ける場面が多い'],['mutual','だいたい互いに同程度','互いに助ける場面が同程度'],['junior','主に相手から私へ','相手に助けてもらう場面が多い'],['none','特に助け合いはない','継続的な助け合いはない']]}
+if(id==='symmetry'){o=[['mutual','だいたい同程度'],['seniorMore','私から相手への要求が多い'],['juniorMore','相手から私への要求が多い'],['rare','そもそも頼みごとが少ない']]}
+if(id==='money'){o=[['no','いいえ'],['ask','要求した'],['strong','強く要求した']]}
+if(id==='paid'){o=[['no','いいえ'],['yes','はい、受け取った']]}
+return o}
+function render(){var q=qs[step],id=q[0],rq=roleQuestion(q),opts=roleOptions(q),html='<div class="eyebrow">POWER CHECK</div><h2 class="q">'+rq[0]+'</h2><p class="hint">'+rq[1]+'</p>';$('stepLabel').textContent='QUESTION '+(step+1);$('stepCount').textContent=(step+1)+' / '+qs.length;$('bar').style.width=((step+1)/qs.length*100)+'%';$('back').style.visibility=step?'visible':'hidden';$('next').textContent=step===qs.length-1?'判定する':'次へ';if(q[3]==='c'){html+='<div class="choices">';opts.forEach(function(o){html+='<button class="choice '+(s[id]===o[0]?'sel':'')+'" data-v="'+o[0]+'"><strong>'+o[1]+'</strong>'+(o[2]?'<small>'+o[2]+'</small>':'')+'</button>'});html+='</div>'}else{html+='<div class="checks">';opts.forEach(function(o){html+='<label class="check"><input type="checkbox" value="'+o[0]+'" '+(s[id].indexOf(o[0])>=0?'checked':'')+'><span><strong>'+o[1]+'</strong><small>'+o[2]+'</small></span></label>'});html+='</div>'}$('qa').innerHTML=html;if(q[3]==='c'){[].slice.call(document.querySelectorAll('.choice')).forEach(function(b){b.onclick=function(){s[id]=b.dataset.v;render()}})}else{[].slice.call(document.querySelectorAll('#qa input')).forEach(function(c){c.onchange=function(){multiSet(id);interim();valid()}})}interim();valid()}
 function valid(){var q=qs[step];$('next').disabled=q[3]==='c'?!s[q[0]]:s[q[0]].length===0}
 $('next').onclick=function(){if(step<qs.length-1){step++;render();scrollTo({top:0,behavior:'smooth'})}else result()};$('back').onclick=function(){if(step){step--;render()}};
-function calc(){var season={spring:0,summer:1,autumn:0,winter:.5}[s.season]||0,weather={sunny:0,cloudy:.4,rain:1,hot:1.6,cold:1.2,storm:2}[s.weather]||0,age={0:0,1:3,2:5,3:8,6:12}[s.age]||0,close=Math.min(8,({0:0,1:1.5,2:3,3:5,4:7}[s.closeness]||0)+({0:0,1:.5,2:1,3:1.5,4:2}[s.privateContact]||0)),length={0:0,1:1,2:2,3:3.5,4:5}[s.relationshipLength]||0,depend={0:0,1:2,2:5,3:9,4:13}[s.dependency]||0,recip={senior:5,mutual:1,junior:-3,none:0}[s.reciprocity]||0,pa={private:0,work:5,meeting:7,study:3,event:1,online:0}[s.place]||0,ow={study:6,research:7,wedding:11,celebration:5},obl=0;s.obligations.filter(function(x){return x!=='none'}).forEach(function(x){obl+=ow[x]||0});var ref=N(s.refusal)*5,surf=40+age+close+length+depend+recip+N(s.authority)*7+pa+obl-season-weather-ref*.15;var pf={none:0,once:13,repeat:34,habit:62}[s.past]||0,pw={money:16,researchFee:26,mailThreat:34,otherThreat:28,bug:30,humiliation:14,work:22},pt=0;s.pastTypes.filter(function(x){return x!=='none'}).forEach(function(x){pt+=pw[x]||0});var past=pf+pt;if(s.past==='repeat')past+=pt*.24;if(s.past==='habit')past+=pt*.45+18;var repair={none:0,apology:5,correction:7,restitution:10,multiple:13}[s.repair]||0;if(past>0)past=Math.max(pf,past-Math.min(repair,past*.18));var cur={none:0,some:12,strong:28}[s.current]||0;cur+=s.money==='strong'?22:s.money==='ask'?11:0;cur+=s.paid==='yes'?10:0;var tw={reputation:15,relation:13,work:24,property:21,physical:31};s.threats.filter(function(x){return x!=='none'}).forEach(function(x){cur+=tw[x]||0});cur+=({none:0,gross:14,bug:30,risk:34,force:45}[s.danger]||0)+N(s.pressure)*9;if(s.money!=='no'&&s.threats.some(function(x){return x!=='none'}))cur+=24;if(s.danger!=='none'&&s.threats.some(function(x){return x!=='none'}))cur+=18;var total=past+cur,back=total*1.05,refHist={none:0,fine:0,awkward:7,bad:18,retaliation:34}[s.refusalHistory]||0,symBack={mutual:0,seniorMore:14,juniorMore:-3,rare:0}[s.symmetry]||0,recipBack={senior:3,mutual:0,junior:0,none:0}[s.reciprocity]||0;back+=refHist+symBack+recipBack;if(past>0&&cur>0)back+=22+Math.min(34,total*.12);back+=N(s.evidence)*16+N(s.witness)*13;if(N(s.evidence)>=2&&past>25)back+=18;if(N(s.witness)>=2&&cur>25)back+=15;var senior=surf+cur*.14-back*.78,junior=34+ref+back*.6+N(s.evidence)*4+N(s.witness)*4,share=Math.max(4,Math.min(96,50+(senior-junior)*.48)),trap=s.role==='yes';if(trap){back=Math.max(back,220);share=Math.min(share,6)}return{surf:surf,past:past,cur:cur,total:total,back:back,share:share,jshare:100-share,trap:trap,obl:obl}}
+function calc(){
+var season={spring:0,summer:1,autumn:0,winter:.5}[s.season]||0,
+weather={sunny:0,cloudy:.4,rain:1,hot:1.6,cold:1.2,storm:2}[s.weather]||0,
+age={0:0,1:3,2:5,3:8,6:12}[s.age]||0,
+closeness=({0:0,1:1.5,2:3,3:5,4:7}[s.closeness]||0),
+privatePts=({0:0,1:.5,2:1,3:1.5,4:2}[s.privateContact]||0),
+affinity=Math.min(8,closeness+privatePts),
+lengthPts={0:0,1:1,2:2,3:3.5,4:5}[s.relationshipLength]||0,
+dependPower={0:0,1:2,2:5,3:9,4:13}[s.dependency]||0,
+recipPower={senior:5,mutual:1,junior:-3,none:0}[s.reciprocity]||0,
+pa={private:0,work:5,meeting:7,study:3,event:1,online:0}[s.place]||0,
+ow={study:6,research:7,wedding:11,celebration:5},obl=0;
+s.obligations.filter(function(x){return x!=='none'}).forEach(function(x){obl+=ow[x]||0});
+var ref=N(s.refusal)*5,
+surf=40+age+affinity+lengthPts+dependPower+recipPower+N(s.authority)*7+pa+obl-season-weather-ref*.15;
+
+var pf={none:0,once:13,repeat:34,habit:62}[s.past]||0,
+pw={money:16,researchFee:26,mailThreat:34,otherThreat:28,bug:30,humiliation:14,work:22},pt=0;
+s.pastTypes.filter(function(x){return x!=='none'}).forEach(function(x){pt+=pw[x]||0});
+var past=pf+pt;
+if(s.past==='repeat')past+=pt*.24;
+if(s.past==='habit')past+=pt*.45+18;
+var repair={none:0,apology:5,correction:7,restitution:10,multiple:13}[s.repair]||0;
+if(past>0)past=Math.max(pf,past-Math.min(repair,past*.18));
+
+var cur={none:0,some:12,strong:28}[s.current]||0;
+cur+=s.money==='strong'?22:s.money==='ask'?11:0;
+cur+=s.paid==='yes'?10:0;
+var tw={reputation:15,relation:13,work:24,property:21,physical:31};
+s.threats.filter(function(x){return x!=='none'}).forEach(function(x){cur+=tw[x]||0});
+cur+=({none:0,gross:14,bug:30,risk:34,force:45}[s.danger]||0)+N(s.pressure)*9;
+if(s.money!=='no'&&s.threats.some(function(x){return x!=='none'}))cur+=24;
+if(s.danger!=='none'&&s.threats.some(function(x){return x!=='none'}))cur+=18;
+
+var powerRisk=N(s.authority)*8+N(s.dependency)*8,
+refusalRisk=(4-N(s.refusal))*7+({none:0,fine:0,awkward:8,bad:18,retaliation:32}[s.refusalHistory]||0),
+asymRisk=({mutual:0,seniorMore:18,juniorMore:0,rare:0}[s.symmetry]||0)+({senior:6,mutual:0,junior:0,none:0}[s.reciprocity]||0),
+protect=(s.refusalHistory==='fine'?10:0)+(s.symmetry==='mutual'?8:0)+(s.reciprocity==='mutual'?5:0),
+latent=Math.max(0,powerRisk+refusalRisk+asymRisk-protect);
+
+var total=past+cur,
+back=total*1.05+latent;
+if(past>0&&cur>0)back+=22+Math.min(34,total*.12);
+if(total>0||latent>=40){back+=N(s.evidence)*10+N(s.witness)*8}
+if(N(s.evidence)>=2&&past>25)back+=12;
+if(N(s.witness)>=2&&cur>25)back+=12;
+
+var senior=surf+cur*.14-back*.78,
+junior=34+ref+back*.6+N(s.evidence)*3+N(s.witness)*3,
+share=Math.max(4,Math.min(96,50+(senior-junior)*.48));
+
+var affinityScore=Math.round(affinity+lengthPts),
+dependScore=-Math.round(powerRisk+refusalRisk),
+mutualScore=Math.round((s.reciprocity==='mutual'?5:s.reciprocity==='junior'?3:s.reciprocity==='senior'?-6:0)+(s.symmetry==='mutual'?6:s.symmetry==='juniorMore'?3:s.symmetry==='seniorMore'?-18:0));
+return{surf:surf,past:past,cur:cur,total:total,back:back,share:share,jshare:100-share,obl:obl,latent:latent,powerRisk:powerRisk,refusalRisk:refusalRisk,asymRisk:asymRisk,protect:protect,affinityScore:affinityScore,dependScore:dependScore,mutualScore:mutualScore}
+}
 function names(){return s.role==='yes'?['あなた（先輩）','相手（後輩）']:['相手（先輩）','あなた（後輩）']}
-function warning(c){if(c.trap)return '<div class="warning"><strong>⚠ 虫を食え、などの不当な要求を過去に行った可能性があります</strong><p>回答内容にかかわらず、先輩側には潜在的な要求履歴リスクがあるものとして最終判定へ強く反映されています。</p></div>';if(s.pastTypes.indexOf('bug')>=0||s.danger==='bug')return '<div class="warning"><strong>⚠ 虫を食え、などの不当な要求の履歴が検出されました</strong><p>過去分と現在分を合算し、先輩側への反作用として強く反映しています。</p></div>';return ''}
-function legal(){var r=[],th=s.threats.some(function(x){return x!=='none'}),strong=N(s.pressure)>=2;if(th)r.push(['脅迫罪の可能性','刑法222条','生命・身体・自由・名誉・財産への害を告知して脅迫した場合、犯罪成立が問題となり得ます。']);if((th||s.danger==='force')&&strong&&(s.money!=='no'||s.danger!=='none'||s.current!=='none'))r.push(['強要罪の可能性','刑法223条','脅迫または暴行を用いて義務のないことを行わせる等の場合、犯罪成立が問題となり得ます。']);if(s.paid==='yes'&&s.money!=='no'&&th)r.push(['恐喝罪の可能性','刑法249条','恐喝して財物を交付させた等の場合、犯罪成立が問題となり得ます。']);if(s.danger==='force')r.push(['暴行罪の可能性','刑法208条','身体に対する有形力の行使がある場合、犯罪成立が問題となり得ます。']);return r}
-function result(){var c=calc(),n=names(),risks=legal(),head=c.trap?'先輩側、圧倒的不利':c.share>=70?'先輩側が強い':c.share>=55?'先輩側がやや優位':c.share>=45?'ほぼ互角':c.share>=30?'後輩側が逆転':'先輩側の立場が大きく崩れている';var desc=c.trap?'途中までの表面上の優位とは逆に、最終判定では先輩側が圧倒的不利です。義理・恩義よりも潜在的な不当要求履歴とその反作用を重く扱っています。':c.share<45?'義理・恩義による表面上の先輩優位を、過去と現在の不当要求の累積が上回りました。':'現時点では表面上の先輩優位が残っています。';var h='<div class="verdict"><div class="vk">FINAL POWER BALANCE</div><div class="vt">'+head+'</div><div class="vd">'+desc+'</div></div>'+warning(c)+'<div class="balance"><div class="labels"><span>'+n[0]+'</span><span>'+n[1]+'</span></div><div class="track"><i class="needle" style="left:'+c.share+'%"></i></div><div class="pct"><span>'+Math.round(c.share)+'%</span><span>'+Math.round(c.jshare)+'%</span></div></div><div class="metrics"><div class="metric"><span>表面上の先輩パワー</span><b>'+Math.round(c.surf)+'</b><small>年次・裁量・義理・恩義</small></div><div class="metric"><span>過去＋現在の要求負債</span><b>'+Math.round(c.total)+'</b><small>過去 '+Math.round(c.past)+' ＋ 現在 '+Math.round(c.cur)+'</small></div><div class="metric"><span>先輩側への反作用</span><b>'+Math.round(c.back)+'</b><small>累積・証拠・第三者</small></div></div>';var om={study:['勉強会','+6'],research:['研究','+7'],wedding:['結婚式','+11'],celebration:['お祝い','+5']};h+='<div class="section"><h2>関係性の見取り図</h2><div class="entry"><div><strong>付き合い・親しさ</strong><small>親しさ、付き合いの長さ、私的交流を重複しすぎない範囲で補正</small></div><div>補助</div></div><div class="entry"><div><strong>依存・断りやすさ</strong><small>実質的な依存と、実際に断った後の反応を別々に評価</small></div><div>別軸</div></div><div class="entry"><div><strong>助け合い・要求の対称性</strong><small>一方向の義理や要求と、相互的な関係を区別</small></div><div>別軸</div></div></div><div class="section"><h2>義理・恩義の帳簿</h2>';var os=s.obligations.filter(function(x){return x!=='none'});h+=os.length?os.map(function(x){return '<div class="entry"><div><strong>'+om[x][0]+'</strong><small>表面上の先輩優位へ加算</small></div><div class="plus">'+om[x][1]+'</div></div>'}).join(''):'<div class="entry"><div><strong>加算なし</strong></div><div>±0</div></div>';h+='</div><div class="section"><h2>先輩側の立場を削っているもの</h2>';if(c.past)h+='<div class="entry"><div><strong>過去の不当要求</strong><small>頻度と種類を合算</small></div><div class="minus">-'+Math.round(c.past)+'</div></div>';if(c.cur)h+='<div class="entry"><div><strong>現在の不当要求</strong><small>金銭・脅し・危険要求・圧力を合算</small></div><div class="minus">-'+Math.round(c.cur)+'</div></div>';if(c.past&&c.cur)h+='<div class="entry"><div><strong>過去 × 現在の累積</strong><small>同じ関係での蓄積を追加反作用に変換</small></div><div class="minus">増幅</div></div>';if(c.trap)h+='<div class="entry"><div><strong>先輩本人として回答</strong><small>潜在的な過去要求リスクを強制反映</small></div><div class="minus">上限6%</div></div>';h+='</div><div class="section"><h2>刑事責任につながり得る論点</h2>';h+=risks.length?risks.map(function(x){return '<div class="risk"><strong>'+x[0]+'</strong><small>'+x[1]+' ｜ '+x[2]+'</small></div>'}).join(''):'<div class="risk"><strong style="color:#456b58">現在の入力から強い刑事論点は抽出されませんでした</strong><small>個別事案の犯罪成立や法的責任を判定するものではありません。</small></div>';h+='</div><div class="method">この診断は人間関係をあえて「強弱」に圧縮した試作モデルです。義理・恩義は表面上の先輩優位へ加点し、不当要求は過去分と現在分を合算して先輩側への反作用として計算します。刑法表示は成立を断定するものではありません。</div><button class="restart" id="restart">最初から診断する</button>';$('stage').classList.add('hide');$('progbox').classList.add('hide');$('result').classList.add('show');$('result').innerHTML=h;$('restart').onclick=function(){s=empty();step=0;$('result').classList.remove('show');$('stage').classList.remove('hide');$('progbox').classList.remove('hide');render();scrollTo({top:0,behavior:'smooth'})}}
+function warning(c){
+if(s.pastTypes.indexOf('bug')>=0||s.danger==='bug')return '<div class="warning"><strong>⚠ 虫を食べる等の不当な要求に関する入力があります</strong><p>過去分と現在分を合算し、先輩側への反作用として計算しています。</p></div>';
+if(c.latent>=80)return '<div class="warning"><strong>⚠ 自動評価上、関係性に強い疑義が残ります</strong><p>職場上の裁量、依存度、拒否のしやすさ、要求の偏りを総合すると、不当な要求や過度な圧力が生じ得る関係リスクが高く算出されました。過去の行為や犯罪成立そのものを認定する表示ではありません。</p></div>';
+if(c.latent>=45)return '<div class="warning"><strong>⚠ 自動評価上、関係性の偏りに注意が必要です</strong><p>裁量・依存・拒否余地などの組み合わせから、先輩側の影響が強くなりやすいと算出されました。</p></div>';
+return ''
+}
+function legal(c){
+var r=[],th=s.threats.some(function(x){return x!=='none'}),strong=N(s.pressure)>=2;
+if(th)r.push(['脅迫罪の可能性','刑法222条','生命・身体・自由・名誉・財産への害を告知して脅迫した場合、犯罪成立が問題となり得ます。']);
+if((th||s.danger==='force')&&strong&&(s.money!=='no'||s.danger!=='none'||s.current!=='none'))r.push(['強要罪の可能性','刑法223条','脅迫または暴行を用いて義務のないことを行わせる等の場合、犯罪成立が問題となり得ます。']);
+if(s.paid==='yes'&&s.money!=='no'&&th)r.push(['恐喝罪の可能性','刑法249条','恐喝して財物を交付させた等の場合、犯罪成立が問題となり得ます。']);
+if(s.danger==='force')r.push(['暴行罪の可能性','刑法208条','身体に対する有形力の行使がある場合、犯罪成立が問題となり得ます。']);
+if(c.latent>=70)r.push(['刑事責任に発展し得る要素の確認','事実関係の確認が必要','高い依存や拒否困難性だけで犯罪が成立するわけではありません。ただし、実際に脅し・暴行・金銭要求等が伴っていた場合は、脅迫・強要・恐喝等の検討が必要になることがあります。']);
+if(c.latent>=55||s.pastTypes.indexOf('work')>=0||s.threats.indexOf('work')>=0)r.push(['職場での懲戒・責任追及リスク','服務規律・ハラスメント等','職務上の立場を利用した圧力や不利益取扱いが実際にあれば、調査・指導・懲戒その他の責任追及の対象となる可能性があります。']);
+return r
+}
+function scoreText(v){var n=Math.round(v);return(n>0?'+':'')+n}
+function result(){
+var c=calc(),n=names(),risks=legal(c),
+head=c.share>=70?'先輩側が強い':c.share>=55?'先輩側がやや優位':c.share>=45?'ほぼ互角':c.share>=30?'後輩側が逆転':'先輩側、圧倒的不利',
+desc=c.share<30?'途中までの表面上の優位とは逆に、最終判定では先輩側が大きく不利になりました。関係性の偏りと不当要求リスクを合算した結果です。':c.share<45?'表面上の先輩優位を、関係性の偏りや過去・現在の要求負債が上回りました。':'現時点では表面上の先輩優位が残っています。';
+
+var h='<div class="verdict"><div class="vk">FINAL POWER BALANCE</div><div class="vt">'+head+'</div><div class="vd">'+desc+'</div></div>'+warning(c)+
+'<div class="balance"><div class="labels"><span>'+n[0]+'</span><span>'+n[1]+'</span></div><div class="track"><i class="needle" style="left:'+c.share+'%"></i></div><div class="pct"><span>'+Math.round(c.share)+'%</span><span>'+Math.round(c.jshare)+'%</span></div></div>'+
+'<div class="metrics"><div class="metric"><span>表面上の先輩パワー</span><b>'+Math.round(c.surf)+'</b><small>年次・裁量・義理・恩義・関係性</small></div><div class="metric"><span>過去＋現在の要求負債</span><b>'+Math.round(c.total)+'</b><small>過去 '+Math.round(c.past)+' ＋ 現在 '+Math.round(c.cur)+'</small></div><div class="metric"><span>先輩側への反作用</span><b>'+Math.round(c.back)+'</b><small>要求負債＋関係性リスク</small></div></div>';
+
+h+='<div class="section"><h2>関係性の点数</h2>'+
+'<div class="entry"><div><strong>付き合い・親しさ</strong><small>親しさ、付き合いの長さ、私的交流を重複しすぎない範囲で加点</small></div><div class="plus">'+scoreText(c.affinityScore)+'</div></div>'+
+'<div class="entry"><div><strong>依存・断りやすさ</strong><small>裁量、依存度、拒否余地、断った後の反応から算出</small></div><div class="minus">'+scoreText(c.dependScore)+'</div></div>'+
+'<div class="entry"><div><strong>助け合い・要求の対称性</strong><small>相互性が高ければ加点、一方向の要求が強ければ減点</small></div><div class="'+(c.mutualScore>=0?'plus':'minus')+'">'+scoreText(c.mutualScore)+'</div></div></div>';
+
+var om={study:['勉強会','+6'],research:['研究','+7'],wedding:['結婚式','+11'],celebration:['お祝い','+5']};
+h+='<div class="section"><h2>義理・恩義の帳簿</h2>';
+var os=s.obligations.filter(function(x){return x!=='none'});
+h+=os.length?os.map(function(x){return '<div class="entry"><div><strong>'+om[x][0]+'</strong><small>表面上の先輩優位へ加算</small></div><div class="plus">'+om[x][1]+'</div></div>'}).join(''):'<div class="entry"><div><strong>加算なし</strong></div><div>±0</div></div>';
+
+h+='</div><div class="section"><h2>先輩側の立場を削っているもの</h2>';
+if(c.past)h+='<div class="entry"><div><strong>過去の不当要求</strong><small>頻度と種類を合算</small></div><div class="minus">-'+Math.round(c.past)+'</div></div>';
+if(c.cur)h+='<div class="entry"><div><strong>現在の不当要求</strong><small>金銭・脅し・危険要求・圧力を合算</small></div><div class="minus">-'+Math.round(c.cur)+'</div></div>';
+if(c.past&&c.cur)h+='<div class="entry"><div><strong>過去 × 現在の累積</strong><small>同じ関係での蓄積を追加反作用として計算</small></div><div class="minus">増幅</div></div>';
+if(c.latent>0)h+='<div class="entry"><div><strong>不当な要求等の潜在リスク</strong><small>裁量・依存・拒否余地・要求の偏りから算出した関係性リスク</small></div><div class="minus">-'+Math.round(c.latent)+'</div></div>';
+
+h+='</div><div class="section"><h2>刑事責任・職場責任につながり得る論点</h2>';
+h+=risks.length?risks.map(function(x){return '<div class="risk"><strong>'+x[0]+'</strong><small>'+x[1]+' ｜ '+x[2]+'</small></div>'}).join(''):'<div class="risk"><strong style="color:#456b58">現在の入力から強い法的・職場上の論点は抽出されませんでした</strong><small>この診断は個別事案の犯罪成立、懲戒事由、法的責任を判定するものではありません。</small></div>';
+
+h+='</div><div class="method">この診断は人間関係を「強弱」に圧縮した試作モデルです。最終値は、表面上の先輩パワー、明示的な要求負債、裁量・依存・拒否余地・要求の対称性から算出した潜在リスクを合算して計算します。潜在リスクは事実認定や犯罪成立を意味しません。</div><button class="restart" id="restart">最初から診断する</button>';
+$('stage').classList.add('hide');$('progbox').classList.add('hide');$('result').classList.add('show');$('result').innerHTML=h;
+$('restart').onclick=function(){s=empty();step=0;$('result').classList.remove('show');$('stage').classList.remove('hide');$('progbox').classList.remove('hide');render();scrollTo({top:0,behavior:'smooth'})}
+}
+
 render();
 })();
 </script>
