@@ -40,8 +40,8 @@ var qs=[
 ['refusalHistory','過去に先輩側の頼みを断ったとき、関係はどうなりましたか？','実際に断った経験がある場合の反応から、拒否の自由度を補正します。','c',[['none','断ったことがない・分からない'],['fine','特に問題は起きなかった'],['awkward','少し気まずくなった'],['bad','明確に関係が悪化した'],['retaliation','不利益・報復のような反応があった']]],
 ['past','過去に、義務のない不当・無茶な要求を受けたことがありますか？','今回とは別の過去分です。現在分と合算します。','c',[['none','特にない'],['once','1〜2回ある'],['repeat','繰り返しある'],['habit','かなり常態化している']]],
 ['pastTypes','過去の不当・無茶な要求は、どんな内容でしたか？','複数選べます。','m',[['none','特になし・該当なし','過去分として加算しない'],['money','金銭要求','支払い・おごり・金銭の提供を求める等'],['researchFee','研究資料等への過大な対価要求','研究資料・データ・知見等の提供に対し、相場や関係性から見て過大な金銭・見返りを求める'],['mailThreat','職場内郵便・文書等での脅迫','職場内郵便、文書、メモ等を用いて害や不利益を示唆する'],['otherThreat','その他の脅しを伴う要求','口頭・メッセージ等で不利益を示唆して従わせようとする'],['bug','虫を食べる等','摂食・身体に関わる無茶な要求'],['humiliation','屈辱的な要求','恥をかく行為・罰ゲーム等'],['work','仕事上の不利益を伴う要求','担当・評価・業務上の立場に関わるもの']]],
-['repair','過去の行き過ぎについて、その後の修復はありましたか？','謝罪・返金・訂正などは過去分を少し緩和しますが、出来事そのものを無かったことにはしません。','c',[['none','特にない'],['apology','謝罪・説明があった'],['correction','訂正・撤回があった'],['restitution','返金・弁償など具体的な回復があった'],['multiple','複数の修復行動があった']]],
-['current','現在の場面で、不当・無茶な要求はありますか？','ここからは現在分を記録します。','c',[['none','特にない'],['some','ある'],['strong','かなり強い要求がある']]],
+['repair','過去の行き過ぎについて、先輩から修復行動はありましたか？','先輩からの謝罪・返金・訂正などは過去分を少し緩和しますが、出来事そのものを無かったことにはしません。','c',[['none','特にない'],['apology','先輩から謝罪・説明があった'],['correction','先輩が訂正・撤回した'],['restitution','先輩から返金・弁償など具体的な回復があった'],['multiple','先輩から複数の修復行動があった']]],
+['current','現在、先輩から不当・無茶な要求を受けていますか？','ここからは現在、あなたが先輩から受けている要求を記録します。','c',[['none','受けていない'],['some','受けている'],['strong','かなり強い要求を受けている']]],
 ['money','金銭の要求をされましたか？','お金を出す・払う・おごる等を含みます。','c',[['no','いいえ'],['ask','要求された'],['strong','強く要求された']]],
 ['paid','実際に金銭を渡しましたか？','金銭要求がない場合は「いいえ」を選んでください。','c',[['no','いいえ'],['yes','はい、支払った・渡した']]],
 ['threats','脅し・不利益の示唆はありましたか？','複数選べます。','m',[['none','なし','脅し・不利益の示唆はない'],['reputation','名誉・評判','悪く言う、恥をかかせる等'],['relation','人間関係・排除','仲間外れ、関係を切る等'],['work','仕事上の不利益','業務・担当・評価等で不利益を示唆'],['property','財産への害','物や金銭への不利益を示唆'],['physical','身体・自由への害','身体への害、拘束等を示唆']]],
@@ -83,6 +83,11 @@ if(id==='reciprocity'){o=[['senior','主に私から相手へ','私が相手を�
 if(id==='symmetry'){o=[['mutual','だいたい同程度'],['seniorMore','私から相手への要求が多い'],['juniorMore','相手から私への要求が多い'],['rare','そもそも頼みごとが少ない']]}
 if(id==='money'){o=[['no','いいえ'],['ask','要求した'],['strong','強く要求した']]}
 if(id==='paid'){o=[['no','いいえ'],['yes','はい、受け取った']]}
+if(id==='repair'){o=[['none','特にしていない'],['apology','相手に謝罪・説明をした'],['correction','訂正・撤回をした'],['restitution','相手に返金・弁償など具体的な回復をした'],['multiple','相手に複数の修復行動をした']]}
+if(id==='current'){o=[['none','していない'],['some','している'],['strong','かなり強い要求をしている']]}
+if(id==='past'){o=[['none','特にない'],['once','1〜2回した'],['repeat','繰り返しした'],['habit','かなり常態化していた']]}
+if(id==='danger'){o=[['none','なし'],['gross','不快・屈辱的な要求をした'],['bug','虫を食べる等の摂食要求をした'],['risk','けが・体調悪化のおそれがある要求をした'],['force','暴力・身体的な強制をした']]}
+if(id==='pressure'){o=[['0','圧力をかけていない'],['1','軽い圧力をかけた'],['2','かなり強い圧力をかけた'],['3','強く威圧した'],['4','事実上、押し切った']]}
 return o}
 function render(){var q=qs[step],id=q[0],rq=roleQuestion(q),opts=roleOptions(q),html='<div class="eyebrow">POWER CHECK</div><h2 class="q">'+rq[0]+'</h2><p class="hint">'+rq[1]+'</p>';$('stepLabel').textContent='QUESTION '+(step+1);$('stepCount').textContent=(step+1)+' / '+qs.length;$('bar').style.width=((step+1)/qs.length*100)+'%';$('back').style.visibility=step?'visible':'hidden';$('next').textContent=step===qs.length-1?'判定する':'次へ';if(q[3]==='c'){html+='<div class="choices">';opts.forEach(function(o){html+='<button class="choice '+(s[id]===o[0]?'sel':'')+'" data-v="'+o[0]+'"><strong>'+o[1]+'</strong>'+(o[2]?'<small>'+o[2]+'</small>':'')+'</button>'});html+='</div>'}else{html+='<div class="checks">';opts.forEach(function(o){html+='<label class="check"><input type="checkbox" value="'+o[0]+'" '+(s[id].indexOf(o[0])>=0?'checked':'')+'><span><strong>'+o[1]+'</strong><small>'+o[2]+'</small></span></label>'});html+='</div>'}$('qa').innerHTML=html;if(q[3]==='c'){[].slice.call(document.querySelectorAll('.choice')).forEach(function(b){b.onclick=function(){s[id]=b.dataset.v;render()}})}else{[].slice.call(document.querySelectorAll('#qa input')).forEach(function(c){c.onchange=function(){multiSet(id);interim();valid()}})}interim();valid()}
 function valid(){var q=qs[step];$('next').disabled=q[3]==='c'?!s[q[0]]:s[q[0]].length===0}
@@ -125,7 +130,8 @@ var powerRisk=N(s.authority)*8+N(s.dependency)*8,
 refusalRisk=(4-N(s.refusal))*7+({none:0,fine:0,awkward:8,bad:18,retaliation:32}[s.refusalHistory]||0),
 asymRisk=({mutual:0,seniorMore:18,juniorMore:0,rare:0}[s.symmetry]||0)+({senior:6,mutual:0,junior:0,none:0}[s.reciprocity]||0),
 protect=(s.refusalHistory==='fine'?10:0)+(s.symmetry==='mutual'?8:0)+(s.reciprocity==='mutual'?5:0),
-latent=Math.max(0,powerRisk+refusalRisk+asymRisk-protect);
+roleRisk=s.role==='yes'?180:0,
+latent=Math.max(0,roleRisk+powerRisk+refusalRisk+asymRisk-protect);
 
 var total=past+cur,
 back=total*1.05+latent;
@@ -141,10 +147,11 @@ share=Math.max(4,Math.min(96,50+(senior-junior)*.48));
 var affinityScore=Math.round(affinity+lengthPts),
 dependScore=-Math.round(powerRisk+refusalRisk),
 mutualScore=Math.round((s.reciprocity==='mutual'?5:s.reciprocity==='junior'?3:s.reciprocity==='senior'?-6:0)+(s.symmetry==='mutual'?6:s.symmetry==='juniorMore'?3:s.symmetry==='seniorMore'?-18:0));
-return{surf:surf,past:past,cur:cur,total:total,back:back,share:share,jshare:100-share,obl:obl,latent:latent,powerRisk:powerRisk,refusalRisk:refusalRisk,asymRisk:asymRisk,protect:protect,affinityScore:affinityScore,dependScore:dependScore,mutualScore:mutualScore}
+return{surf:surf,past:past,cur:cur,total:total,back:back,share:share,jshare:100-share,obl:obl,latent:latent,roleRisk:roleRisk,powerRisk:powerRisk,refusalRisk:refusalRisk,asymRisk:asymRisk,protect:protect,affinityScore:affinityScore,dependScore:dependScore,mutualScore:mutualScore}
 }
 function names(){return s.role==='yes'?['あなた（先輩）','相手（後輩）']:['相手（先輩）','あなた（後輩）']}
 function warning(c){
+if(s.role==='yes')return '<div class="warning"><strong>⚠ 自動評価上、先輩側の関係性に重大な疑義が残ります</strong><p>回答全体を関係構造として評価した結果、不当な要求、過度な圧力、拒否困難性が生じ得る潜在リスクが非常に高く算出されました。個別の違法行為や犯罪成立そのものを認定する表示ではありません。</p></div>';
 if(s.pastTypes.indexOf('bug')>=0||s.danger==='bug')return '<div class="warning"><strong>⚠ 虫を食べる等の不当な要求に関する入力があります</strong><p>過去分と現在分を合算し、先輩側への反作用として計算しています。</p></div>';
 if(c.latent>=80)return '<div class="warning"><strong>⚠ 自動評価上、関係性に強い疑義が残ります</strong><p>職場上の裁量、依存度、拒否のしやすさ、要求の偏りを総合すると、不当な要求や過度な圧力が生じ得る関係リスクが高く算出されました。過去の行為や犯罪成立そのものを認定する表示ではありません。</p></div>';
 if(c.latent>=45)return '<div class="warning"><strong>⚠ 自動評価上、関係性の偏りに注意が必要です</strong><p>裁量・依存・拒否余地などの組み合わせから、先輩側の影響が強くなりやすいと算出されました。</p></div>';
@@ -152,12 +159,16 @@ return ''
 }
 function legal(c){
 var r=[],th=s.threats.some(function(x){return x!=='none'}),strong=N(s.pressure)>=2;
+if(s.role==='yes'){
+r.push(['刑事責任の潜在的リスク','事実関係の確認が必要','自動評価上、先輩側の関係構造には刑事責任の検討につながり得る潜在的リスクが残ります。これだけで犯罪成立を意味するものではありませんが、実際に脅し・暴行・金銭要求等が伴う場合は、脅迫・強要・恐喝等が問題となり得ます。']);
+r.push(['職場での懲戒・責任追及リスク','服務規律・ハラスメント等','先輩側の影響力や相手の拒否困難性を背景に、実際の圧力・不利益取扱い等があれば、調査・指導・懲戒その他の責任追及につながる可能性があります。']);
+}
 if(th)r.push(['脅迫罪の可能性','刑法222条','生命・身体・自由・名誉・財産への害を告知して脅迫した場合、犯罪成立が問題となり得ます。']);
 if((th||s.danger==='force')&&strong&&(s.money!=='no'||s.danger!=='none'||s.current!=='none'))r.push(['強要罪の可能性','刑法223条','脅迫または暴行を用いて義務のないことを行わせる等の場合、犯罪成立が問題となり得ます。']);
 if(s.paid==='yes'&&s.money!=='no'&&th)r.push(['恐喝罪の可能性','刑法249条','恐喝して財物を交付させた等の場合、犯罪成立が問題となり得ます。']);
 if(s.danger==='force')r.push(['暴行罪の可能性','刑法208条','身体に対する有形力の行使がある場合、犯罪成立が問題となり得ます。']);
-if(c.latent>=70)r.push(['刑事責任に発展し得る要素の確認','事実関係の確認が必要','高い依存や拒否困難性だけで犯罪が成立するわけではありません。ただし、実際に脅し・暴行・金銭要求等が伴っていた場合は、脅迫・強要・恐喝等の検討が必要になることがあります。']);
-if(c.latent>=55||s.pastTypes.indexOf('work')>=0||s.threats.indexOf('work')>=0)r.push(['職場での懲戒・責任追及リスク','服務規律・ハラスメント等','職務上の立場を利用した圧力や不利益取扱いが実際にあれば、調査・指導・懲戒その他の責任追及の対象となる可能性があります。']);
+if(s.role!=='yes'&&c.latent>=70)r.push(['刑事責任に発展し得る要素の確認','事実関係の確認が必要','高い依存や拒否困難性だけで犯罪が成立するわけではありません。ただし、実際に脅し・暴行・金銭要求等が伴っていた場合は、脅迫・強要・恐喝等の検討が必要になることがあります。']);
+if(s.role!=='yes'&&(c.latent>=55||s.pastTypes.indexOf('work')>=0||s.threats.indexOf('work')>=0))r.push(['職場での懲戒・責任追及リスク','服務規律・ハラスメント等','職務上の立場を利用した圧力や不利益取扱いが実際にあれば、調査・指導・懲戒その他の責任追及の対象となる可能性があります。']);
 return r
 }
 function scoreText(v){var n=Math.round(v);return(n>0?'+':'')+n}
@@ -184,7 +195,7 @@ h+='</div><div class="section"><h2>先輩側の立場を削っているもの</h
 if(c.past)h+='<div class="entry"><div><strong>過去の不当要求</strong><small>頻度と種類を合算</small></div><div class="minus">-'+Math.round(c.past)+'</div></div>';
 if(c.cur)h+='<div class="entry"><div><strong>現在の不当要求</strong><small>金銭・脅し・危険要求・圧力を合算</small></div><div class="minus">-'+Math.round(c.cur)+'</div></div>';
 if(c.past&&c.cur)h+='<div class="entry"><div><strong>過去 × 現在の累積</strong><small>同じ関係での蓄積を追加反作用として計算</small></div><div class="minus">増幅</div></div>';
-if(c.latent>0)h+='<div class="entry"><div><strong>不当な要求等の潜在リスク</strong><small>裁量・依存・拒否余地・要求の偏りから算出した関係性リスク</small></div><div class="minus">-'+Math.round(c.latent)+'</div></div>';
+if(c.latent>0)h+='<div class="entry"><div><strong>不当な要求等の潜在リスク</strong><small>回答立場、裁量・依存・拒否余地・要求の偏りを含む関係構造から算出</small></div><div class="minus">-'+Math.round(c.latent)+'</div></div>';
 
 h+='</div><div class="section"><h2>刑事責任・職場責任につながり得る論点</h2>';
 h+=risks.length?risks.map(function(x){return '<div class="risk"><strong>'+x[0]+'</strong><small>'+x[1]+' ｜ '+x[2]+'</small></div>'}).join(''):'<div class="risk"><strong style="color:#456b58">現在の入力から強い法的・職場上の論点は抽出されませんでした</strong><small>この診断は個別事案の犯罪成立、懲戒事由、法的責任を判定するものではありません。</small></div>';
